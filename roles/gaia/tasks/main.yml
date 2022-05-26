@@ -15,12 +15,12 @@
      - gaiad
      - gaiacli
   become: true
-- name: Init Gaia
+- name: Init genesis
   command:  "gaiad init {{ moniker }} --chain-id  {{ chainID }} -o"
-  register: gaia_init
+  register: genesis
 
 - debug: 
-     var: gaia_init.stderr
+     var: genesis.stderr
 
 - name:  "adding {{ moniker }} key in backend ring"
   command: "gaiad keys add {{ moniker }} --keyring-backend test"
@@ -35,15 +35,18 @@
   register: gentx
   ignore_errors: true
 
-- debug:
-     var: gentx.stderr_lines
-
+- name: getting transaction details
+  command: "cat {{ gentx.stderr.split('to').1 }}"
+  register: transaction
+- debug: 
+     var: transaction.stdout
+  ignore_errors: true
 - name: collect gentxs
   command: "gaiad collect-gentxs"
   register: collect
 
-- debug:
-    var: collect.stderr_lines.0
+#- debug:
+#    var: collect.stderr_lines.0
 
 - command:  "gaiad keys delete {{ moniker }} --keyring-backend test --yes "
 - command: "rm -rf .gaia"
