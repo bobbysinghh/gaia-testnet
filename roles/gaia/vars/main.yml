@@ -1,0 +1,4 @@
+---
+# vars file for gaia
+moniker: mymoniker
+chainID: mychain

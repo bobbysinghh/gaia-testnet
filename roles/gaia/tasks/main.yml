@@ -1,0 +1,49 @@
+---
+# tasks file for gaia
+- name: installing packages
+  package:
+        name:
+            - gcc
+        state: latest
+
+- name: Install gaia
+  copy:
+      src: "{{ item }}"
+      dest: /usr/local/bin/
+      mode: 755
+  with_items:
+     - gaiad
+     - gaiacli
+  become: true
+- name: Init Gaia
+  command:  "gaiad init {{ moniker }} --chain-id  {{ chainID }} -o"
+  register: gaia_init
+
+- debug: 
+     var: gaia_init.stderr
+
+- name:  "adding {{ moniker }} key in backend ring"
+  command: "gaiad keys add {{ moniker }} --keyring-backend test"
+  register: key
+
+#- debug:
+#      msg: "{{ key.stdout_lines[2].split(': ').1 }}"
+- name: adding genesis-account
+  command: "gaiad add-genesis-account  {{ key.stdout_lines[2].split(': ').1 }} 10000000000stake,1000000000000uatom "
+- name: creating gentx
+  command: "gaiad gentx {{ moniker }} 100000stake --chain-id {{ chainID }}  --keyring-backend test"
+  register: gentx
+  ignore_errors: true
+
+- debug:
+     var: gentx.stderr_lines
+
+- name: collect gentxs
+  command: "gaiad collect-gentxs"
+  register: collect
+
+- debug:
+    var: collect.stderr_lines.0
+
+- command:  "gaiad keys delete {{ moniker }} --keyring-backend test --yes "
+- command: "rm -rf .gaia"
