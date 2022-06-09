@@ -18,10 +18,18 @@
 - name: Init genesis
   command:  "gaiad init {{ moniker }} --chain-id  {{ chainID }} -o"
   register: genesis
-
 - debug: 
      var: genesis.stderr
-
+- name: modifing configuration file config.toml
+  template:
+     src: config.toml.j2
+     dest: /home/bobby/.gaia/config/config.toml
+  when:  inventory_hostname in groups['validator'] 
+- name: modifing configuration file config.toml for sentry node
+  template:
+       src: config2.toml.j2
+       dest: /home/bobby/.gaia/config/config.toml
+  when:  inventory_hostname in groups['sentry'] and validator_node_id is defined 
 - name:  "adding {{ moniker }} key in backend ring"
   command: "gaiad keys add {{ moniker }} --keyring-backend test"
   register: key
@@ -31,7 +39,7 @@
 - name: adding genesis-account
   command: "gaiad add-genesis-account  {{ key.stdout_lines[2].split(': ').1 }} 10000000000stake,1000000000000uatom "
 - name: creating gentx
-  command: "gaiad gentx {{ moniker }} 100000stake --chain-id {{ chainID }}  --keyring-backend test"
+  command: "gaiad gentx {{ moniker }} 10000000000stake --chain-id {{ chainID }}  --keyring-backend test"
   register: gentx
   ignore_errors: true
 
@@ -44,9 +52,4 @@
 - name: collect gentxs
   command: "gaiad collect-gentxs"
   register: collect
-
-#- debug:
-#    var: collect.stderr_lines.0
-
-- command:  "gaiad keys delete {{ moniker }} --keyring-backend test --yes "
-- command: "rm -rf .gaia"
+#- command: "rm -rf .gaia"

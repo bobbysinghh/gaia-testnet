@@ -1,3 +1,11 @@
 - hosts: all
+  vars_prompt:
+        - name: validator_node_id
+          prompt: "Enter comma-separate list of nodeid values your validator (if you dont have give empty string ) >>"
+          private: no
+        - name: persistent_peers
+          prompt: "comma-separated list of nodeid@ip:port values that define a list of peers >>"
+          private: no
+
   roles:  
     - role: gaia

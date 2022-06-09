@@ -1,3 +1,5 @@
-[node]
-192.168.29.234  ansible_user=bobby ansible_ssh_pass=ubuntu
+[sentry]
+192.168.29.234 ansible_user=bobby ansible_ssh_pass=ubuntu
+
+[validator]
 192.168.29.69   ansible_user=bobby ansible_ssh_pass=ubuntu
